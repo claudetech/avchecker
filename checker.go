@@ -23,19 +23,18 @@ func (c *Checker) createRequest() (req *http.Request, err error) {
 }
 
 func (c *Checker) sendStats() {
-	c.stats.compute()
 	serializedStats, err := c.options.Formatter.Format(c.stats)
 	c.lastReport = time.Now()
 	c.stats.reset()
 
 	if err != nil {
-		c.options.Logger.Errorf("Could not format stats: %s", err.Error())
+		c.options.Logger.Warningf("Could not format stats: %s", err.Error())
 		return
 	}
 	c.options.Logger.Info("Sending stats.")
 
 	if err := c.reporter.SendStats(serializedStats); err != nil {
-		c.options.Logger.Errorf("Could not send stats: %s", err.Error())
+		c.options.Logger.Warningf("Could not send stats: %s", err.Error())
 	}
 }
 
@@ -44,10 +43,16 @@ func (c *Checker) sendRequest() {
 	if err == nil {
 		res, err := c.options.HttpClient.Do(req)
 		if err != nil {
-			c.options.Logger.Error(err.Error())
+			c.options.Logger.Warningf("Error during HTTP request: %s", err.Error())
 		} else if res.StatusCode >= 200 && res.StatusCode < 300 {
 			c.stats.SuccessCount += 1
 		}
+	}
+}
+
+func (c *Checker) checkStats() {
+	if c.stats.SuccessRatio < c.options.FatalThreshold {
+		c.options.Logger.Fatalf("availability is under threshold: %f", c.stats.SuccessRatio)
 	}
 }
 
@@ -61,6 +66,8 @@ func (c *Checker) StartChecking() {
 		c.stats.TryCount += 1
 		c.sendRequest()
 		if time.Now().Sub(c.lastReport) >= c.options.ReportInterval {
+			c.stats.compute()
+			c.checkStats()
 			c.sendStats()
 		}
 		time.Sleep(c.options.CheckInterval)

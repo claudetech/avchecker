@@ -45,17 +45,6 @@ func (r *dummyReporter) SendStats(stats []byte) error {
 	return nil
 }
 
-func makeDummyChecker(client miniHttpClient, reporter Reporter, runs int, wait time.Duration) *Checker {
-	return NewChecker("foo", reporter, &Options{
-		HttpClient:     client,
-		CheckInterval:  1 * time.Nanosecond,
-		ReportInterval: wait,
-		Logger:         loggo.New("silent"),
-		totalRuns:      runs,
-		ExtraFields:    map[string]interface{}{"foo": "bar"},
-	})
-}
-
 func checkReports(reports []map[string]interface{}, expected [][]int) {
 	Expect(len(reports)).To(Equal(len(expected)))
 	for i, expectedVals := range expected {
@@ -65,12 +54,36 @@ func checkReports(reports []map[string]interface{}, expected [][]int) {
 	}
 }
 
+type strAppender struct {
+	s string
+}
+
+func (s *strAppender) Append(msg *loggo.Message) {
+	s.s += msg.String()
+}
+
 var _ = g.Describe("Checker", func() {
 	g.Describe("StartChecking", func() {
 		var reporter *dummyReporter
+		var appender *strAppender
+
+		var makeDummyChecker = func(client miniHttpClient, reporter Reporter, runs int, wait time.Duration) *Checker {
+			logger := loggo.New("logger")
+			logger.AddAppender(appender, loggo.EmptyFlag)
+			return NewChecker("foo", reporter, &Options{
+				HttpClient:     client,
+				CheckInterval:  1 * time.Nanosecond,
+				ReportInterval: wait,
+				Logger:         logger,
+				totalRuns:      runs,
+				ExtraFields:    map[string]interface{}{"foo": "bar"},
+				FatalThreshold: 0.5,
+			})
+		}
 
 		g.BeforeEach(func() {
 			reporter = &dummyReporter{}
+			appender = &strAppender{}
 		})
 
 		g.It("should register successes", func() {
@@ -98,6 +111,14 @@ var _ = g.Describe("Checker", func() {
 			checker.StartChecking()
 			expected := [][]int{{3, 3}}
 			checkReports(reporter.reports, expected)
+		})
+
+		g.It("should log fatal when under threshold", func() {
+			checker := makeDummyChecker(&failClient{}, reporter, 1, 1*time.Nanosecond)
+			Expect(appender.s).To(BeEmpty())
+			checker.StartChecking()
+			Expect(appender.s).NotTo(BeEmpty())
+			Expect(appender.s).To(ContainSubstring("FATAL"))
 		})
 	})
 })

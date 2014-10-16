@@ -21,6 +21,7 @@ type Options struct {
 	RequestType    string
 	RequestBody    io.Reader
 	ExtraFields    map[string]interface{}
+	FatalThreshold float64
 	totalRuns      int
 }
 
