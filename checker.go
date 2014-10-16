@@ -52,7 +52,7 @@ func (c *Checker) sendRequest() {
 
 func (c *Checker) checkStats() {
 	if c.stats.SuccessRatio < c.options.FatalThreshold {
-		c.options.Logger.Fatalf("availability is under threshold: %f", c.stats.SuccessRatio)
+		c.options.Logger.Fatalf("%s availability is under threshold. success ratio: %f", c.url, c.stats.SuccessRatio)
 	}
 }
 
@@ -79,6 +79,10 @@ func (c *Checker) StartChecking() {
 
 func (c *Checker) Stop() {
 	c.running = false
+}
+
+func New(url string, reporter Reporter, options *Options) *Checker {
+	return NewChecker(url, reporter, options)
 }
 
 func NewChecker(url string, reporter Reporter, options *Options) *Checker {

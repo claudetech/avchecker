@@ -1,7 +1,9 @@
 package avchecker
 
 import (
+	"bytes"
 	redis "github.com/xuyu/goredis"
+	"net/http"
 )
 
 type Reporter interface {
@@ -26,5 +28,24 @@ func NewRedisQueueReporter(queueName string, options *redis.DialConfig) (Reporte
 	return &redisQueueReporter{
 		queueName: queueName,
 		client:    client,
+	}, nil
+}
+
+type httpReporter struct {
+	url      string
+	bodyType string
+	client   *http.Client
+}
+
+func (h *httpReporter) SendStats(stats []byte) error {
+	_, err := h.client.Post(h.url, h.bodyType, bytes.NewReader(stats))
+	return err
+}
+
+func NewHttpReporter(url string, bodyType string) (Reporter, error) {
+	return &httpReporter{
+		client:   http.DefaultClient,
+		bodyType: bodyType,
+		url:      url,
 	}, nil
 }
