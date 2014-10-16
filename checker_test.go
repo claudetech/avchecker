@@ -52,6 +52,7 @@ func makeDummyChecker(client miniHttpClient, reporter Reporter, runs int, wait t
 		ReportInterval: wait,
 		Logger:         loggo.New("silent"),
 		totalRuns:      runs,
+		ExtraFields:    map[string]interface{}{"foo": "bar"},
 	})
 }
 
@@ -77,6 +78,7 @@ var _ = g.Describe("Checker", func() {
 			checker.StartChecking()
 			checkReports(reporter.reports, [][]int{[]int{1, 1}})
 			Expect(reporter.reports[0]["success_ratio"].(float64)).To(BeNumerically(">", 0.0))
+			Expect(reporter.reports[0]).To(HaveKey("foo"))
 		})
 
 		g.It("should work on server failures", func() {

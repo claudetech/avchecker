@@ -11,5 +11,5 @@ type Formatter interface {
 type JsonFormatter struct{}
 
 func (f *JsonFormatter) Format(s *stats) ([]byte, error) {
-	return json.Marshal(s)
+	return json.Marshal(s.toMap())
 }

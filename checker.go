@@ -14,7 +14,7 @@ type Checker struct {
 	running    bool
 }
 
-func (c *Checker) makeRequest() (req *http.Request, err error) {
+func (c *Checker) createRequest() (req *http.Request, err error) {
 	if req, err = http.NewRequest(c.options.RequestType, c.url, c.options.RequestBody); err != nil {
 		return
 	}
@@ -39,6 +39,18 @@ func (c *Checker) sendStats() {
 	}
 }
 
+func (c *Checker) sendRequest() {
+	req, err := c.createRequest()
+	if err == nil {
+		res, err := c.options.HttpClient.Do(req)
+		if err != nil {
+			c.options.Logger.Error(err.Error())
+		} else if res.StatusCode >= 200 && res.StatusCode < 300 {
+			c.stats.SuccessCount += 1
+		}
+	}
+}
+
 func (c *Checker) StartChecking() {
 	runTime := 0
 	c.stats.reset()
@@ -47,15 +59,7 @@ func (c *Checker) StartChecking() {
 	for c.running && (c.options.totalRuns == -1 || runTime < c.options.totalRuns) {
 		runTime += 1
 		c.stats.TryCount += 1
-		req, err := c.makeRequest()
-		if err == nil {
-			res, err := c.options.HttpClient.Do(req)
-			if err != nil {
-				c.options.Logger.Error(err.Error())
-			} else if res.StatusCode >= 200 && res.StatusCode < 300 {
-				c.stats.SuccessCount += 1
-			}
-		}
+		c.sendRequest()
 		if time.Now().Sub(c.lastReport) >= c.options.ReportInterval {
 			c.sendStats()
 		}
@@ -73,7 +77,7 @@ func (c *Checker) Stop() {
 func NewChecker(url string, reporter Reporter, options *Options) *Checker {
 	options.setDefaults()
 	return &Checker{
-		stats:    &stats{},
+		stats:    &stats{extraFields: options.ExtraFields},
 		url:      url,
 		reporter: reporter,
 		options:  options,
