@@ -45,6 +45,10 @@ func (r *dummyReporter) SendStats(stats []byte) error {
 	return nil
 }
 
+func (d *dummyReporter) String() string {
+	return "dummy"
+}
+
 func checkReports(reports []map[string]interface{}, expected [][]int) {
 	Expect(len(reports)).To(Equal(len(expected)))
 	for i, expectedVals := range expected {
@@ -76,7 +80,7 @@ var _ = g.Describe("Checker", func() {
 				PublishInterval: wait,
 				Logger:          logger,
 				totalRuns:       runs,
-				ExtraFields:     map[string]interface{}{"foo": "bar"},
+				ExtraFields:     map[string]string{"foo": "bar"},
 				FatalThreshold:  0.5,
 			})
 		}

@@ -25,7 +25,7 @@ var _ = g.Describe("stats", func() {
 		})
 
 		g.It("should work with extra fields", func() {
-			s := &stats{TryCount: 2, SuccessCount: 1, extraFields: map[string]interface{}{"foo": "bar"}}
+			s := &stats{TryCount: 2, SuccessCount: 1, extraFields: map[string]string{"foo": "bar"}}
 			m := s.toMap()
 			Expect(m).To(HaveKey("foo"))
 		})

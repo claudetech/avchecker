@@ -6,7 +6,7 @@ type stats struct {
 	SuccessRatio float64 `json:"success_ratio"`
 	totalTime    int64
 	AverageTime  float64 `json:"average_time"`
-	extraFields  map[string]interface{}
+	extraFields  map[string]string
 }
 
 func (b *stats) reset() {

@@ -20,7 +20,7 @@ type Options struct {
 	HttpClient      miniHttpClient
 	RequestType     string
 	RequestBody     io.Reader
-	ExtraFields     map[string]interface{}
+	ExtraFields     map[string]string
 	FatalThreshold  float64
 	totalRuns       int
 }
@@ -39,7 +39,7 @@ func (o *Options) setDefaults() {
 		o.Formatter = &JsonFormatter{}
 	}
 	if o.ExtraFields == nil {
-		o.ExtraFields = make(map[string]interface{})
+		o.ExtraFields = make(map[string]string)
 	}
 	if o.HttpClient == nil {
 		o.HttpClient = http.DefaultClient
