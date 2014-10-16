@@ -76,6 +76,7 @@ var _ = g.Describe("Checker", func() {
 			checker := makeDummyChecker(&successClient{}, reporter, 1, 1*time.Nanosecond)
 			checker.StartChecking()
 			checkReports(reporter.reports, [][]int{[]int{1, 1}})
+			Expect(reporter.reports[0]["success_ratio"].(float64)).To(BeNumerically(">", 0.0))
 		})
 
 		g.It("should work on server failures", func() {
