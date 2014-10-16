@@ -6,12 +6,12 @@ import (
 )
 
 type Checker struct {
-	stats      *stats
-	lastReport time.Time
-	options    *Options
-	url        string
-	reporter   Reporter
-	running    bool
+	stats       *stats
+	lastPublish time.Time
+	options     *Options
+	url         string
+	reporter    Reporter
+	running     bool
 }
 
 func (c *Checker) createRequest() (req *http.Request, err error) {
@@ -24,7 +24,7 @@ func (c *Checker) createRequest() (req *http.Request, err error) {
 
 func (c *Checker) sendStats() {
 	serializedStats, err := c.options.Formatter.Format(c.stats)
-	c.lastReport = time.Now()
+	c.lastPublish = time.Now()
 	c.stats.reset()
 
 	if err != nil {
@@ -62,13 +62,13 @@ func (c *Checker) checkStats() {
 func (c *Checker) StartChecking() {
 	runTime := 0
 	c.stats.reset()
-	c.lastReport = time.Now()
+	c.lastPublish = time.Now()
 	c.running = true
 	for c.running && (c.options.totalRuns == -1 || runTime < c.options.totalRuns) {
 		runTime += 1
 		c.stats.TryCount += 1
 		c.sendRequest()
-		if time.Now().Sub(c.lastReport) >= c.options.ReportInterval {
+		if time.Now().Sub(c.lastPublish) >= c.options.PublishInterval {
 			c.stats.compute()
 			c.checkStats()
 			c.sendStats()

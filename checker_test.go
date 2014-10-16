@@ -71,13 +71,13 @@ var _ = g.Describe("Checker", func() {
 			logger := loggo.New("logger")
 			logger.AddAppender(appender, loggo.EmptyFlag)
 			return NewChecker("foo", reporter, &Options{
-				HttpClient:     client,
-				CheckInterval:  1 * time.Nanosecond,
-				ReportInterval: wait,
-				Logger:         logger,
-				totalRuns:      runs,
-				ExtraFields:    map[string]interface{}{"foo": "bar"},
-				FatalThreshold: 0.5,
+				HttpClient:      client,
+				CheckInterval:   1 * time.Nanosecond,
+				PublishInterval: wait,
+				Logger:          logger,
+				totalRuns:       runs,
+				ExtraFields:     map[string]interface{}{"foo": "bar"},
+				FatalThreshold:  0.5,
 			})
 		}
 

@@ -13,24 +13,24 @@ type miniHttpClient interface {
 }
 
 type Options struct {
-	CheckInterval  time.Duration
-	ReportInterval time.Duration
-	Logger         *loggo.Logger
-	Formatter      Formatter
-	HttpClient     miniHttpClient
-	RequestType    string
-	RequestBody    io.Reader
-	ExtraFields    map[string]interface{}
-	FatalThreshold float64
-	totalRuns      int
+	CheckInterval   time.Duration
+	PublishInterval time.Duration
+	Logger          *loggo.Logger
+	Formatter       Formatter
+	HttpClient      miniHttpClient
+	RequestType     string
+	RequestBody     io.Reader
+	ExtraFields     map[string]interface{}
+	FatalThreshold  float64
+	totalRuns       int
 }
 
 func (o *Options) setDefaults() {
 	if o.CheckInterval == 0 {
 		o.CheckInterval = 10 * time.Second
 	}
-	if o.ReportInterval == 0 {
-		o.ReportInterval = 1 * time.Minute
+	if o.PublishInterval == 0 {
+		o.PublishInterval = 1 * time.Minute
 	}
 	if o.Logger == nil {
 		o.Logger = loggo_default.Log
