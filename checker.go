@@ -41,11 +41,14 @@ func (c *Checker) sendStats() {
 func (c *Checker) sendRequest() {
 	req, err := c.createRequest()
 	if err == nil {
+		start := time.Now()
 		res, err := c.options.HttpClient.Do(req)
+		elapsed := time.Since(start)
 		if err != nil {
 			c.options.Logger.Warningf("Error during HTTP request: %s", err.Error())
 		} else if res.StatusCode >= 200 && res.StatusCode < 300 {
 			c.stats.SuccessCount += 1
+			c.stats.totalTime += elapsed.Nanoseconds()
 		}
 	}
 }
