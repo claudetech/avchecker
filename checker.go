@@ -31,7 +31,7 @@ func (c *Checker) sendStats() {
 		c.options.Logger.Warningf("Could not format stats: %s", err.Error())
 		return
 	}
-	c.options.Logger.Info("Sending stats.")
+	c.options.Logger.Infof("Sending stats via %s.", c.reporter.String())
 
 	if err := c.reporter.SendStats(serializedStats); err != nil {
 		c.options.Logger.Warningf("Could not send stats: %s", err.Error())
@@ -41,9 +41,11 @@ func (c *Checker) sendStats() {
 func (c *Checker) sendRequest() {
 	req, err := c.createRequest()
 	if err == nil {
+		c.options.Logger.Tracef("start sending request to %s", req.URL.String())
 		start := time.Now()
 		res, err := c.options.HttpClient.Do(req)
 		elapsed := time.Since(start)
+		c.options.Logger.Tracef("request to %s sent in %dμs", req.URL.String(), elapsed.Nanoseconds()*1000)
 		if err != nil {
 			c.options.Logger.Warningf("Error during HTTP request: %s", err.Error())
 		} else if res.StatusCode >= 200 && res.StatusCode < 300 {
@@ -73,6 +75,7 @@ func (c *Checker) StartChecking() {
 			c.checkStats()
 			c.sendStats()
 		}
+		c.options.Logger.Tracef("sleeping for %dms", c.options.CheckInterval.Nanoseconds()/1000000)
 		time.Sleep(c.options.CheckInterval)
 	}
 	if c.stats.TryCount > 0 {
