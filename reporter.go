@@ -79,3 +79,18 @@ func NewHttpReporter(url string, bodyType string) (Reporter, error) {
 		url:      url,
 	}, nil
 }
+
+type stdoutReporter struct{}
+
+func (r *stdoutReporter) SendStats(stats []byte) error {
+	fmt.Println(string(stats))
+	return nil
+}
+
+func (s *stdoutReporter) String() string {
+	return "print to stdout"
+}
+
+func NewStdoutReporter() Reporter {
+	return &stdoutReporter{}
+}

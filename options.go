@@ -20,6 +20,7 @@ type Options struct {
 	HttpClient      miniHttpClient
 	RequestType     string
 	RequestBody     io.Reader
+	RequestHeaders  map[string]string
 	ExtraFields     map[string]string
 	FatalThreshold  float64
 	totalRuns       int

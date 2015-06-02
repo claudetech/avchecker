@@ -1,6 +1,7 @@
 package avchecker
 
 import (
+	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -19,6 +20,10 @@ func (c *Checker) createRequest() (req *http.Request, err error) {
 		return
 	}
 	req.Header.Add("User-Agent", "AvailabilityBot (https://github.com/claudetech/avchecker)")
+	for header, value := range c.options.RequestHeaders {
+		req.Header.Add(header, value)
+	}
+
 	return
 }
 
@@ -38,19 +43,31 @@ func (c *Checker) sendStats() {
 	}
 }
 
-func (c *Checker) sendRequest() {
+func (c *Checker) sendRequest(drop bool) {
 	req, err := c.createRequest()
 	if err == nil {
 		c.options.Logger.Tracef("start sending request to %s", req.URL.String())
 		start := time.Now()
 		res, err := c.options.HttpClient.Do(req)
 		elapsed := time.Since(start)
-		c.options.Logger.Tracef("request to %s sent in %dμs", req.URL.String(), elapsed.Nanoseconds()*1000)
+		c.options.Logger.Debugf("request to %s sent in %dμs", req.URL.String(), elapsed.Nanoseconds()/1000)
+		if drop {
+			return
+		}
 		if err != nil {
 			c.options.Logger.Warningf("Error during HTTP request: %s", err.Error())
 		} else if res.StatusCode >= 200 && res.StatusCode < 300 {
 			c.stats.SuccessCount += 1
 			c.stats.totalTime += elapsed.Nanoseconds()
+		}
+		if res.Body == nil {
+			return
+		}
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			c.options.Logger.Warningf("could not read received body: %s", err.Error())
+		} else {
+			c.options.Logger.Tracef("received body %s", body)
 		}
 	}
 }
@@ -66,10 +83,12 @@ func (c *Checker) StartChecking() {
 	c.stats.reset()
 	c.lastPublish = time.Now()
 	c.running = true
+	c.sendRequest(true) // warming up
+	time.Sleep(c.options.CheckInterval)
 	for c.running && (c.options.totalRuns == -1 || runTime < c.options.totalRuns) {
 		runTime += 1
 		c.stats.TryCount += 1
-		c.sendRequest()
+		c.sendRequest(false)
 		if time.Now().Sub(c.lastPublish) >= c.options.PublishInterval {
 			c.stats.compute()
 			c.checkStats()

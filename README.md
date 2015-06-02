@@ -1,4 +1,4 @@
-# Website availability checker [![Build Status](https://travis-ci.org/claudetech/go-availability-checker.svg?branch=master)](https://travis-ci.org/claudetech/go-availability-checker)
+# Website availability checker [![Build Status](https://travis-ci.org/claudetech/avchecker.svg?branch=master)](https://travis-ci.org/claudetech/avchecker)
 
 Simple website availability checker written in Go.
 

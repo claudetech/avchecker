@@ -1,5 +1,3 @@
-// +build local
-
 package main
 
 import (
@@ -17,13 +15,13 @@ import (
 var (
 	url = kingpin.Arg("URL", "URL address to check.").Required().String()
 
-	reporter  = kingpin.Flag("reporter", "Reporter to use to publish stats (http|redis)").Default("http").Short('r').Enum("redis", "http")
-	reportUrl = kingpin.Flag("report-url", "URL to report. HTTP(s) when using HTTP or Redis dial info for redis.").Short('u').Required().String()
+	reporter  = kingpin.Flag("reporter", "Reporter to use to publish stats (http|redis)").Default("stdout").Short('r').Enum("stdout", "redis", "http")
+	reportUrl = kingpin.Flag("report-url", "URL to report. HTTP(s) when using HTTP or Redis dial info for redis.").Short('u').String()
 	queueName = kingpin.Flag("queue-name", "Name of queue to use when using Redis").Short('q').String()
 
 	format = kingpin.Flag("format", "Format to POST stats (only json available for now)").Default("json").Enum("json")
 
-	debug     = kingpin.Flag("debug", "Enable debug mode.").Bool()
+	logLevel  = kingpin.Flag("log-level", "Set log level.").Default("info").Enum("trace", "debug", "info", "warning", "error", "fatal")
 	logFile   = kingpin.Flag("log-file", "File to log the output").Short('o').String()
 	useStdout = kingpin.Flag("print", "Print the output to stdout").Short('p').Bool()
 	slackUrl  = kingpin.Flag("slack-url", "URL to send message to Slack when server is not availabile").String()
@@ -31,7 +29,8 @@ var (
 	checkInterval   = kingpin.Flag("check-interval", "Interval in seconds between availability check").Default("10").Int()
 	publishInterval = kingpin.Flag("publish-interval", "Interval in seconds between stats publication").Default("60").Int()
 	fatalThreshold  = kingpin.Flag("fatal-threshold", "Sucess ratio under which a fatal error should be logged").Default("0.8").Short('f').Float()
-	extraFields     = kingpin.Flag("extra-fields", "Extra fields to send with the stats data").Short('x').StringMap()
+	extraFields     = kingpin.Flag("extra-fields", "Extra fields to send with the report stats data").Short('x').StringMap()
+	requestHeaders  = kingpin.Flag("request-headers", "Extra headers to send with the request").Short('H').StringMap()
 	requestType     = kingpin.Flag("request-type", "The method to use when sending message to the server to check").Default("GET").String()
 	requestBody     = kingpin.Flag("request-body", "The body to send to the server to check if using POST").String()
 )
@@ -49,9 +48,17 @@ func getReporter() (avchecker.Reporter, error) {
 		if *queueName == "" {
 			kingpin.UsageErrorf("queue-name must be provided when using Redis")
 		}
+		if reportUrl == nil {
+			return nil, fmt.Errorf("'report-url' is required when using redis, try --help")
+		}
 		return avchecker.NewRedisQueueReporter(*reporter, *reportUrl)
 	case "http":
+		if reportUrl == nil {
+			return nil, fmt.Errorf("'report-url' is required when using http, try --help")
+		}
 		return avchecker.NewHttpReporter(*reportUrl, getMimetype())
+	case "stdout":
+		return avchecker.NewStdoutReporter(), nil
 	default:
 		return nil, fmt.Errorf("unknown type %s", *reporter)
 	}
@@ -59,11 +66,7 @@ func getReporter() (avchecker.Reporter, error) {
 
 func makeLogger() (*loggo.Logger, error) {
 	logger := loggo.New("avchecker")
-	if *debug {
-		logger.SetLevel(loggo.Trace)
-	} else {
-		logger.SetLevel(loggo.Info)
-	}
+	logger.SetLevel(loggo.LevelFromString(*logLevel))
 
 	if *useStdout {
 		logger.AddAppender(loggo.NewStdoutAppender(), loggo.Color)
@@ -111,6 +114,7 @@ func main() {
 		FatalThreshold:  *fatalThreshold,
 		RequestType:     *requestType,
 		RequestBody:     bytes.NewReader([]byte(*requestBody)),
+		RequestHeaders:  *requestHeaders,
 		ExtraFields:     *extraFields,
 	})
 
