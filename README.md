@@ -31,3 +31,8 @@ replace the `reporter, err := ` line by
 ```go
 reporter, err := avchecker.NewHttpReporter("http://mystatscollector.com/stats", "application/json")
 ```
+
+## CLI usage
+
+CLI binary are avilable on the [release page](https://github.com/claudetech/avchecker/releases).
+See [avchecker-cli](./avchecker-cli) for usage.
