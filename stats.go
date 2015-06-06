@@ -1,9 +1,14 @@
 package avchecker
 
+import (
+	"time"
+)
+
 type stats struct {
-	TryCount     int     `json:"try_count"`
-	SuccessCount int     `json:"success_count"`
-	SuccessRatio float64 `json:"success_ratio"`
+	SentAt       time.Time `json:"current_date_time"`
+	TryCount     int       `json:"try_count"`
+	SuccessCount int       `json:"success_count"`
+	SuccessRatio float64   `json:"success_ratio"`
 	totalTime    int64
 	AverageTime  float64 `json:"average_time"`
 	extraFields  map[string]string
@@ -21,6 +26,7 @@ func (s *stats) toMap() map[string]interface{} {
 		"try_count":     s.TryCount,
 		"success_count": s.SuccessCount,
 		"success_ratio": s.SuccessRatio,
+		"sent_at":       s.SentAt,
 	}
 	if s.AverageTime > 0 {
 		m["average_time"] = s.AverageTime

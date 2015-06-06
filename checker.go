@@ -90,6 +90,7 @@ func (c *Checker) StartChecking() {
 		c.stats.TryCount += 1
 		c.sendRequest(false)
 		if time.Now().Sub(c.lastPublish) >= c.options.PublishInterval {
+			c.stats.SentAt = time.Now()
 			c.stats.compute()
 			c.checkStats()
 			c.sendStats()
