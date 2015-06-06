@@ -60,7 +60,7 @@ func (c *Checker) sendRequest(drop bool) {
 			c.stats.SuccessCount += 1
 			c.stats.totalTime += elapsed.Nanoseconds()
 		}
-		if res.Body == nil {
+		if res == nil || res.Body == nil {
 			return
 		}
 		body, err := ioutil.ReadAll(res.Body)
