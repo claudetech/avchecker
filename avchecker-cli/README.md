@@ -49,7 +49,7 @@ Here is a realword example, with headers added to the request, data saved in log
 $ ./avchecker-cli -o avchecker.log --slack-url=https://hooks.slack.com/services/WEBHOOK/SECURE/TOKEN -H My-Auth-Token=VERY_SECURE_AUTH_TOKEN http://example.com >> avchecker-stats.log 2>&1
 ```
 
-If you want to run this while SSH, you can simply use `nohup` and '&':
+If you want to run this in an SSH session, and want to keep it running after exiting, you can simply use `nohup` and '&':
 
 ```sh
 $ nohup ./avchecker-cli -o avchecker.log --slack-url=https://hooks.slack.com/services/WEBHOOK/SECURE/TOKEN -H My-Auth-Token=VERY_SECURE_AUTH_TOKEN http://example.com >> avchecker-stats.log 2>&1 &
