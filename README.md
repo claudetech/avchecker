@@ -34,5 +34,5 @@ reporter, err := avchecker.NewHttpReporter("http://mystatscollector.com/stats", 
 
 ## CLI usage
 
-CLI binary are avilable on the [release page](https://github.com/claudetech/avchecker/releases).
+CLI binaries are avilable on the [release page](https://github.com/claudetech/avchecker/releases).
 See [avchecker-cli](./avchecker-cli) for usage.
