@@ -15,7 +15,7 @@ import (
 var (
 	url = kingpin.Arg("URL", "URL address to check.").Required().String()
 
-	reporter  = kingpin.Flag("reporter", "Reporter to use to publish stats (http|redis)").Default("stdout").Short('r').Enum("stdout", "redis", "http")
+	reporter  = kingpin.Flag("reporter", "Reporter to use to publish stats (http|redis|stdout)").Default("stdout").Short('r').Enum("stdout", "redis", "http")
 	reportUrl = kingpin.Flag("report-url", "URL to report. HTTP(s) when using HTTP or Redis dial info for redis.").Short('u').String()
 	queueName = kingpin.Flag("queue-name", "Name of queue to use when using Redis").Short('q').String()
 
